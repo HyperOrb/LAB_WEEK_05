@@ -1,11 +1,9 @@
-package com.example.lab_week_05.model
+// In file: ImageData.kt
+package com.example.lab_week_05
 
 import com.squareup.moshi.Json
 
+// This class models the data from thecatapi.com
 data class ImageData(
-    val id: String,
-    @Json(name = "url")
-    val imageUrl: String,
-    val width: Int,
-    val height: Int
+    @Json(name = "url") val imageUrl: String
 )

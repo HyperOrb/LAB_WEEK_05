@@ -1,6 +1,6 @@
-package com.example.lab_week_05.api
+// In file: CatApiService.kt
+package com.example.lab_week_05
 
-import com.example.lab_week_05.model.ImageData
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query

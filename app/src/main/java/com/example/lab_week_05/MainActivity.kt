@@ -2,10 +2,9 @@ package com.example.lab_week_05
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.lab_week_05.api.CatApiService
-import com.example.lab_week_05.model.ImageData
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Call
@@ -16,25 +15,30 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
-    private val moshi by lazy {
-        Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
+    companion object {
+        private const val MAIN_ACTIVITY = "MainActivity"
     }
 
-    private val retrofit by lazy {
-        Retrofit.Builder()
-            .baseUrl("https://api.thecatapi.com/v1/")
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
-    }
+    private val moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
+
+    private val retrofit = Retrofit.Builder()
+        .baseUrl("https://api.thecatapi.com/v1/")
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .build()
 
     private val catApiService by lazy {
         retrofit.create(CatApiService::class.java)
     }
-
     private val apiResponseView: TextView by lazy {
         findViewById(R.id.api_response)
+    }
+    private val imageResultView: ImageView by lazy {
+        findViewById(R.id.image_result)
+    }
+    private val imageLoader: ImageLoader by lazy {
+        GlideLoader(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,17 +59,14 @@ class MainActivity : AppCompatActivity() {
                 response: Response<List<ImageData>>
             ) {
                 if (response.isSuccessful) {
-                    val images = response.body()
-
-                    if (images.isNullOrEmpty()) {
-                        Log.w(MAIN_ACTIVITY, "Response body is null or empty")
-                        apiResponseView.text = "No images found."
-                        return
+                    val image = response.body()
+                    val firstImage = image?.firstOrNull()?.imageUrl.orEmpty()
+                    if (firstImage.isNotBlank()) {
+                        imageLoader.loadImage(firstImage, imageResultView)
+                    } else {
+                        Log.d(MAIN_ACTIVITY, "Missing image URL")
                     }
-
-                    val firstImageUrl = images.first().imageUrl
-                    apiResponseView.text = getString(R.string.image_placeholder, firstImageUrl)
-
+                    apiResponseView.text = getString(R.string.image_placeholder, firstImage)
                 } else {
                     Log.e(
                         MAIN_ACTIVITY, "Failed to get response\n" +
@@ -74,9 +75,5 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-    }
-
-    companion object {
-        const val MAIN_ACTIVITY = "MAIN_ACTIVITY"
     }
 }
